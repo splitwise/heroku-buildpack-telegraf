@@ -61,7 +61,7 @@ cat > $BUILD_DIR/.profile.d/001-heroku-buildpack-telegraf.sh << EOF
 pidfile=/tmp/telegraf.pid
 
 # Start Telegraf from the \$HOME/bin directory with the configuration in /app/telegraf.conf (by default), redirect STDOUT to /dev/null (but STDERR should still come through the logs)
-/sbin/start-stop-daemon --start --quiet --pidfile \$pidfile --exec $HOME/bin/telegraf -- -pidfile \$pidfile -config $TELEGRAF_CONF -quiet >/dev/null &
+/sbin/start-stop-daemon --start --quiet --pidfile \$pidfile --exec \$HOME/bin/telegraf -- -pidfile \$pidfile -config $TELEGRAF_CONF -quiet >/dev/null &
 
 EOF
 
