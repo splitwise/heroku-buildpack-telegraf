@@ -1,11 +1,11 @@
 #!/bin/sh
 
 indent() {
-    sed 's/^/       /'
+  sed 's/^/       /'
 }
 
 arrow() {
-    sed 's/^/-----> /'
+  sed 's/^/-----> /'
 }
 
 BUILD_DIR=$1
@@ -21,12 +21,12 @@ TELEGRAF_URL=https://dl.influxdata.com/telegraf/releases/${TELEGRAF_FILENAME}
 echo "Installing Telegraf ${TELEGRAF_VERSION}" | arrow
 
 if [ ! -d $CACHE_DIR ]; then
-    mkdir -p $CACHE_DIR
+  mkdir -p $CACHE_DIR
 fi
 
 if [ ! -f $CACHE_DIR/$TELEGRAF_FILENAME ]; then
-    echo "Downloading telegraf from ${TELEGRAF_URL}" | indent
-    curl -sLf -o $CACHE_DIR/$TELEGRAF_FILENAME $TELEGRAF_URL
+  echo "Downloading telegraf from ${TELEGRAF_URL}" | indent
+  curl -sLf -o $CACHE_DIR/$TELEGRAF_FILENAME $TELEGRAF_URL
 fi
 
 echo "Extracting ${TELEGRAF_FILENAME}" | indent
@@ -38,27 +38,30 @@ cp $CACHE_DIR/telegraf-${TELEGRAF_VERSION}/usr/bin/telegraf $BUILD_DIR/bin/teleg
 
 influxdb_ssl_ca_cert="INFLUXDB_SSL_CA_CERT"
 if [ -f $ENV_DIR/$influxdb_ssl_ca_cert ]; then
-    echo "Found certificate for InfluxDB SSL CA" | indent
-    mkdir -p $BUILD_DIR/.telegraf/etc
-    cp $ENV_DIR/$influxdb_ssl_ca_cert $BUILD_DIR/.telegraf/etc/influxdb_ssl_ca_cert.pem
+  echo "Found certificate for InfluxDB SSL CA" | indent
+  mkdir -p $BUILD_DIR/.telegraf/etc
+  cp $ENV_DIR/$influxdb_ssl_ca_cert $BUILD_DIR/.telegraf/etc/influxdb_ssl_ca_cert.pem
 else
-    echo "No InfluxDB certificate found" | indent
+  echo "No InfluxDB certificate found" | indent
 fi
 
 if [ ! -d $BUILD_DIR/.profile.d ]; then
-    mkdir -p "$BUILD_DIR/.profile.d"
+  mkdir -p "$BUILD_DIR/.profile.d"
 fi
 
-cat > $BUILD_DIR/.profile.d/001-heroku-buildpack-telegraf.sh << EOF
+cat >$BUILD_DIR/.profile.d/001-heroku-buildpack-telegraf.sh <<EOF
 #!/bin/sh
 
 pidfile=/tmp/telegraf.pid
 
-# Start Telegraf from the \$HOME/bin directory with the configuration in /app/telegraf.conf (by default), redirect STDOUT to /dev/null (but STDERR should still come through the logs)
-/sbin/start-stop-daemon --start --quiet --pidfile \$pidfile --exec \$HOME/bin/telegraf -- -pidfile \$pidfile -config \$HOME/$TELEGRAF_CONF -quiet >/dev/null &
+# Only start Telegraf on web dynos (skip console, worker, etc.)
+if [[ "\$DYNO" == web.* ]]; then
+    echo "Starting Telegraf on dyno: \$DYNO"
+    /sbin/start-stop-daemon --start --quiet --pidfile \$pidfile --exec \$HOME/bin/telegraf -- -pidfile \$pidfile -config \$HOME/$TELEGRAF_CONF -quiet >/dev/null &
+else
+    echo "Skipping Telegraf on dyno: \$DYNO (not a web dyno)"
+fi
 
 EOF
 
 chmod +x $BUILD_DIR/.profile.d/001-heroku-buildpack-telegraf.sh
-
-
