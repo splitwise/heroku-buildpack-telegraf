@@ -30,6 +30,10 @@ fi
 if [ ! -f $CACHE_DIR/$TELEGRAF_FILENAME ]; then
     echo "Downloading telegraf from ${TELEGRAF_URL}" | indent
     curl -sLf -o $CACHE_DIR/$TELEGRAF_FILENAME $TELEGRAF_URL
+    if [ $? -ne 0 ]; then
+        curl -s -o /dev/null --head -w '! Download failed due to HTTP %{response_code}. Aborting build.\n' $TELEGRAF_URL | indent
+        exit 1
+    fi
 fi
 
 echo "Extracting ${TELEGRAF_FILENAME}" | indent
