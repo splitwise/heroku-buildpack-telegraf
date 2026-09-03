@@ -15,3 +15,25 @@ Then add the buildpack to the list of heroku buildpacks:
 By default, this buildpack downloads and installs the official Telegraf binary. However, these have become increasingly large, which may use up too much of your Heroku slug size quota.
 
 If you'd like to use a custom build, set `TELEGRAF_DIST_URL_BASE` to the URL where your desired Telegraf tarball is hosted. The buildpack will attempt to download from `TELEGRAF_DIST_URL_BASE/telegraf-1.39.3_linux_amd64.tar.gz`.
+
+## Testing
+
+To test the buildpack, you need to create a build, cache, and env directory:
+
+```
+mkdir -p tmp/build tmp/cache tmp/env
+```
+
+If using a custom build as described above, set the `TELEGRAF_DIST_URL_BASE`:
+
+```
+echo 'https://my.host.example/telegraf-builds/' > tmp/env/TELEGRAF_DIST_URL_BASE
+```
+
+Then, run the compile script:
+
+```
+bin/compile tmp/build tmp/cache tmp/env
+```
+
+Anything emitted to the `tmp/build` directory will be included in the app directory in the slug.
