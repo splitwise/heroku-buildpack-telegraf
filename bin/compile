@@ -62,7 +62,8 @@ cat > $BUILD_DIR/.profile.d/001-heroku-buildpack-telegraf.sh << EOF
 pidfile=/tmp/telegraf.pid
 
 # Start Telegraf from the \$HOME/bin directory with the configuration in /app/telegraf.conf (by default), redirect STDOUT to /dev/null (but STDERR should still come through the logs)
-/sbin/start-stop-daemon --start --quiet --pidfile \$pidfile --exec \$HOME/bin/telegraf -- -pidfile \$pidfile -config \$HOME/$TELEGRAF_CONF -quiet >/dev/null &
+# Strict env handling is already the default since Telegraf 1.38.0; passing it explicitly silences the startup warning. Re-check this flag when upgrading Telegraf, as upstream plans to remove it.
+/sbin/start-stop-daemon --start --quiet --pidfile \$pidfile --exec \$HOME/bin/telegraf -- -pidfile \$pidfile -config \$HOME/$TELEGRAF_CONF -strict-env-handling -quiet >/dev/null &
 
 EOF
 
